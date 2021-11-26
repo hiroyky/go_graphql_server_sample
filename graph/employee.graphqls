@@ -1,0 +1,25 @@
+# employee.graphqls
+
+type Employee implements Node {
+    id: ID!
+    name: String!
+    gender: Gender!
+    email: String!
+    latestLoginAt: Timestamp!
+    """ 扶養家族の人数 """
+    dependentsNum: Int!
+    """ 管理職かどうか """
+    isManager: Boolean!
+    department: Department!
+    company: Company!
+}
+
+enum Gender {
+    Male
+    Female
+}
+
+type EmployeePagination implements Pagination {
+    pageInfo: PaginationInfo!
+    nodes: [Employee!]!
+}
