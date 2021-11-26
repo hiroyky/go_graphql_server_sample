@@ -1,0 +1,14 @@
+# department.graphqls
+
+type Department implements Node {
+    id: ID!
+    departmentName: String!
+    email: String!
+    company: Company!
+    employees: EmployeePagination!
+}
+
+type DepartmentPagination implements Pagination {
+    pageInfo: PaginationInfo!
+    nodes: [Department!]!
+}
