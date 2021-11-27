@@ -2,19 +2,128 @@
 
 package model
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
+import (
+	"fmt"
+	"io"
+	"strconv"
+)
+
+type Node interface {
+	IsNode()
 }
 
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
+type Pagination interface {
+	IsPagination()
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type CompanyPagination struct {
+	PageInfo *PaginationInfo `json:"pageInfo"`
+	Nodes    []*Company      `json:"nodes"`
+}
+
+func (CompanyPagination) IsPagination() {}
+
+type CreateCompanyInput struct {
+	CompanyName    string `json:"companyName"`
+	Representative string `json:"representative"`
+	PhoneNumber    string `json:"phoneNumber"`
+}
+
+type CreateDepartmentInput struct {
+	DepartmentName string `json:"departmentName"`
+	Email          string `json:"email"`
+}
+
+type CreateEmployeeInput struct {
+	Name          string `json:"name"`
+	Gender        Gender `json:"gender"`
+	Email         string `json:"email"`
+	DependentsNum int    `json:"dependentsNum"`
+	IsManager     bool   `json:"isManager"`
+}
+
+type DepartmentPagination struct {
+	PageInfo *PaginationInfo `json:"pageInfo"`
+	Nodes    []*Department   `json:"nodes"`
+}
+
+func (DepartmentPagination) IsPagination() {}
+
+type EmployeePagination struct {
+	PageInfo *PaginationInfo `json:"pageInfo"`
+	Nodes    []*Employee     `json:"nodes"`
+}
+
+func (EmployeePagination) IsPagination() {}
+
+type PaginationInfo struct {
+	Page             int  `json:"page"`
+	PaginationLength int  `json:"paginationLength"`
+	HasNextPage      bool `json:"hasNextPage"`
+	HasPreviousPage  bool `json:"hasPreviousPage"`
+	Count            int  `json:"count"`
+	TotalCount       int  `json:"totalCount"`
+}
+
+type UpdateCompanyInput struct {
+	ID             string  `json:"id"`
+	CompanyName    *string `json:"companyName"`
+	Representative *string `json:"representative"`
+	PhoneNumber    *string `json:"phoneNumber"`
+}
+
+type UpdateDepartmentInput struct {
+	ID             string  `json:"id"`
+	DepartmentName *string `json:"departmentName"`
+	Email          *string `json:"email"`
+}
+
+type UpdateEmployeeInput struct {
+	ID            string  `json:"id"`
+	Name          *string `json:"name"`
+	Gender        *Gender `json:"gender"`
+	Email         *string `json:"email"`
+	DependentsNum *int    `json:"dependentsNum"`
+	IsManager     *bool   `json:"isManager"`
+}
+
+type Gender string
+
+const (
+	GenderMale   Gender = "Male"
+	GenderFemale Gender = "Female"
+)
+
+var AllGender = []Gender{
+	GenderMale,
+	GenderFemale,
+}
+
+func (e Gender) IsValid() bool {
+	switch e {
+	case GenderMale, GenderFemale:
+		return true
+	}
+	return false
+}
+
+func (e Gender) String() string {
+	return string(e)
+}
+
+func (e *Gender) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Gender(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Gender", str)
+	}
+	return nil
+}
+
+func (e Gender) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
