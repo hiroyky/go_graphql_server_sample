@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/hiroyky/go_graphql_server_sample/dataloader"
 	"github.com/hiroyky/go_graphql_server_sample/graph/model"
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -39,9 +40,12 @@ func main() {
 		},
 	})
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{
-		CompanyLoader: companyLoader,
-	}}))
+	c := generated.Config{Resolvers: &graph.Resolver{CompanyLoader: companyLoader}}
+	c.Complexity.Mutation.CreateCompany = func(childComplexity int, input model.CreateCompanyInput) int {
+		return 5
+	}
+
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 	// エラー処理を書く
 	srv.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 		err := graphql.DefaultErrorPresenter(ctx, e)
@@ -52,6 +56,8 @@ func main() {
 		}
 		return err
 	})
+
+	srv.Use(extension.FixedComplexityLimit(10)) // 重さが10を超えたらエラーにする
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
