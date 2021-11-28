@@ -16,7 +16,7 @@ func (r *employeeResolver) Department(ctx context.Context, obj *model.Employee) 
 }
 
 func (r *employeeResolver) Company(ctx context.Context, obj *model.Employee) (*model.Company, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.CompanyLoader.Load(obj.CompanyID)
 }
 
 // Employee returns generated.EmployeeResolver implementation.
